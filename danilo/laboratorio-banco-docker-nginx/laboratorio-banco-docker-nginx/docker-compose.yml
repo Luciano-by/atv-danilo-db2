@@ -1,0 +1,65 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: sala-postgres
+
+    environment:
+      POSTGRES_DB: empresa
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+
+    networks:
+      - banco
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: sala-pgadmin
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+
+    # Mantido temporariamente para testar o pgAdmin diretamente.
+    # Depois que o NGINX estiver funcionando, podemos remover esta porta.
+    ports:
+      - "8080:80"
+
+    depends_on:
+      - postgres
+
+    networks:
+      - banco
+
+
+  nginx:
+    image: nginx:alpine
+    container_name: sala-nginx
+
+    # O NGINX será a porta de entrada para o pgAdmin.
+    ports:
+      - "80:80"
+
+    volumes:
+      # Configuração do reverse proxy.
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+    depends_on:
+      - pgadmin
+
+    networks:
+      - banco
+
+
+volumes:
+  postgres_data:
+
+
+networks:
+  banco:
+    driver: bridge

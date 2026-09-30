@@ -1,0 +1,49 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: sala-postgres
+
+    environment:
+      POSTGRES_DB: empresa
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+
+    networks:
+      - laboratorio
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: sala-pgadmin
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@laboratorio.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+
+    networks:
+      - laboratorio
+
+
+  nginx:
+    image: nginx:alpine
+    container_name: sala-nginx
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+
+    depends_on:
+      - pgadmin
+
+    networks:
+      - laboratorio
+
+
+networks:
+  laboratorio:
+    driver: bridge
